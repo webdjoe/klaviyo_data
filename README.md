@@ -10,6 +10,7 @@ The application is based on a specific SQL Server table structure that is outlin
 
 - [Klaviyo Data](#klaviyo-data)
   - [Table of Contents](#table-of-contents)
+  - [Metrics Tracked](#metrics-tracked)
   - [Installation](#installation)
     - [Installing ODBC Driver](#installing-odbc-driver)
   - [Configuring the Script](#configuring-the-script)
@@ -22,6 +23,19 @@ The application is based on a specific SQL Server table structure that is outlin
     - [Running via Python Module](#running-via-python-module)
     - [Running via Command Line](#running-via-command-line)
   - [Database Structure](#database-structure)
+
+
+## Metrics Tracked
+
+Currently the following metrics are tracked:
+
+- **Placed Order** J8wEZQ - Count & Value
+- **Received email** K8EZcU - Count
+- **Clicked email** Kdifyi - Count
+- **Marked as Spam** KHctvU - Count
+- **Ordered Product** LxXB8W - Count & Value
+- **Unsubscribed** MvCm2p - Count
+- **Opened Email** My7Vk2 - Count
 
 ## Installation
 
