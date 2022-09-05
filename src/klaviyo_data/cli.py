@@ -1,8 +1,8 @@
 """ Command Line Runner."""
 import sys
 import click
-from .klaviyo_app import KlaviyoData
-from .sql_app import DBBuilder
+from klaviyo_data.klaviyo_app import KlaviyoData
+from klaviyo_data.sql_app import DBBuilder
 
 
 @click.command()
@@ -16,23 +16,31 @@ from .sql_app import DBBuilder
                   defaults to config.ini in currect directory')
 def cli_runner(days, between, config):
     """Run Klaviyo Data App CLI."""
-    log = sys.stdout.write
-    app = KlaviyoData(config)
-    shop_conf = app.configuration.shopify
-    if between:
-        if len(between) != 2:
-            log('Please enter only 2 dates with between option')
-            return
-        shop_conf['start'] = between[0]
-        shop_conf['end'] = between[1]
 
+    if between and len(between) == 2:
+        start = between[0]
+        end = between[1]
+        kv_dict = {
+            'klaviyo': {
+                'start': start,
+                'end': end
+            }
+        }
+    elif days and isinstance(days, int):
+        kv_dict = {
+            'klaviyo': {
+                'days': days,
+            }
+        }
+    if kv_dict is not None:
+        app = KlaviyoData(config, config_dict=kv_dict)
     else:
-        shop_conf['days'] = str(days)
-        shop_conf['start'] = ''
-        shop_conf['end'] = ''
+        app = KlaviyoData(config)
 
-    app.start_date, app.end_date = app.date_config()
-    app.app_runner()
+    app.pull_flows()
+    app.flow_metrics()
+    app.pull_campaigns()
+    app.campaign_metrics()
 
 
 @click.command()

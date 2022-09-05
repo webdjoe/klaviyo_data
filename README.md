@@ -24,7 +24,6 @@ The application is based on a specific SQL Server table structure that is outlin
     - [Running via Command Line](#running-via-command-line)
   - [Database Structure](#database-structure)
 
-
 ## Metrics Tracked
 
 Currently the following metrics are tracked:

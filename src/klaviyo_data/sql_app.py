@@ -173,10 +173,10 @@ def get_engine(sql_conf):
             port=port,
             database=database,
             query={
-                "driver": driver,
+                "Driver": driver,
                 "Trusted_Connection": "yes",
                 "TrustedServerCertificate": "yes",
-                "encrypt": "no"
+                "Encrypt": "no"
             }
         )
     elif user is not None and password is not None:
@@ -188,9 +188,9 @@ def get_engine(sql_conf):
             port=port,
             database=database,
             query={
-                "driver": driver,
+                "Driver": driver,
                 "TrustedServerCertificate": "yes",
-                "encrypt": "no"
+                "Encrypt": "no"
             }
         )
     else:

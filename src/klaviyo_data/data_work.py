@@ -1,6 +1,6 @@
 import pandas as pd
 from pandas import DataFrame
-from typing import Type, Union, List, Tuple
+from typing import List
 from klaviyo_data.vars import list_cols, list_types
 
 

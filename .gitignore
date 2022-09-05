@@ -153,3 +153,4 @@ cython_debug/
 .vscode/
 test/
 scripts/TEST.sql
+mssql/

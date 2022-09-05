@@ -30,7 +30,12 @@ class Config:
             logger.debug("Config file not found")
         else:
             self.parser.read(str(self.config_file))
-
+        k_conf = conf_dict.get('klaviyo')
+        if k_conf is not None:
+            if k_conf.get('days') is not None and k_conf.get('start') is None \
+                    and k_conf.get('end') is None:
+                self.parser.remove_option('klaviyo', 'start')
+                self.parser.remove_option('klaviyo', 'end')
         self.parser.read(conf_dict)
 
     @property
