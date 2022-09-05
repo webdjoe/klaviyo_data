@@ -1,5 +1,4 @@
 """ Command Line Runner."""
-import sys
 import click
 from klaviyo_data.klaviyo_app import KlaviyoData
 from klaviyo_data.sql_app import DBBuilder
@@ -52,6 +51,10 @@ def cli_runner(days, between, config):
               help='SQL Server admin user')
 @click.option('--sa_pass', type=str,
               help='SQL Server admin password')
+@click.option('--db_user', type=str, default='kv_user',
+              help="Klaviyo database user")
+@click.option('--db_pass', type=str,
+              help='Klaviyo database user password')
 @click.option('--driver', type=str,
               default='ODBC Driver 17 for SQL Server',
               help='SQL Server driver')
@@ -59,9 +62,19 @@ def cli_runner(days, between, config):
               default='klaviyo', help='SQL Server database')
 @click.option('--tables-only/--db-and-tables', default=False,
               help='Only build tables')
-def klaviyo_db_builder(server, port, sa_user, sa_pass,
+def klaviyo_db_builder(server, port, sa_user, sa_pass, db_user, db_pass,
                        driver, db, tables_only):
-    """Build Klaviyo Database."""
+    """\b
+    Builds database, tables and user for Klaviyo Data App.
+    \b
+    Add --tables-only to only build tables with existing --db.
+
+    Include --db_user and --db_pass to create a user for the database.
+
+    \b
+    Without --db_user and --db_pass, the admin user or existsing --db 
+    user needs to be used to run the app
+    """
     click.echo(f"tables_only: {tables_only}")
     click.echo(f"server: {server}")
     if tables_only:
@@ -94,6 +107,9 @@ def klaviyo_db_builder(server, port, sa_user, sa_pass,
     build_tables = dbbuilder.build_tables(db)
     if build_tables is True:
         click.echo(f"Successfully built {db} database and Klaviyo tables")
-        return
+        if db_user and db_pass:
+            create_user = dbbuilder.create_user(db_user, db_pass, db)
+            if create_user is True:
+                click.echo(f"Successfully created {db_user} user in {db}")
     click.echo("Error building tables")
     return
