@@ -31,7 +31,8 @@ setuptools.setup(
         'requests>=2.20',
         'six',
         'sqlalchemy>=1.4',
-        'klaviyo'
+        'klaviyo_sdk',
+        'pyodbc'
     ],
     package_dir={'': 'src'},
     packages=find_packages('src', exclude=["test"]),

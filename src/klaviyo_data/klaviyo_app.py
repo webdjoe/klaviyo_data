@@ -1,20 +1,21 @@
 import sys
 import requests
+import logging
 import pandas as pd
+from time import sleep
 from sqlalchemy.engine import Engine as EngType
 from sqlalchemy import Table, MetaData, insert
 from datetime import timedelta, datetime as dt
-import klaviyo_sdk
 from dateutil import parser
 from pandas import DataFrame
 from typing import List, Tuple, Optional, Generator
-from .sql_app import get_engine, id_gen, data_qry
-import logging
-from time import sleep
-from .vars import MetricConfig, CampaignConfig
-from .data_work import campaign_lists, flow_lists, metric_parse
-from .configure import Config
 from configparser import ConfigParser, SectionProxy
+import klaviyo_sdk
+from klaviyo_data.sql_app import get_engine, id_gen, data_qry
+from klaviyo_data.vars import MetricConfig, CampaignConfig
+from klaviyo_data.data_work import campaign_lists, flow_lists, metric_parse
+from klaviyo_data.configure import Config
+
 
 logger = logging.getLogger()
 output_file = logging.FileHandler('klaviyo.log')
@@ -270,17 +271,17 @@ class KlaviyoData:
             full_df['date'] = pd.to_datetime(full_df['date'])
         return full_df
 
-    def campaign_metrics(self, date_rng=None):
+    def campaign_metrics(self):
         metric_where = self.metric_config.campaign_where
         today = dt.today().date()
-        if date_rng is None:
-            if self.start_str is None or self.end_str is None:
-                start_date = today - timedelta(days=30)
-            else:
-                start_date = dt.strptime(self.start_str, '%Y-%m-%d').date()
+        if self.start_str is None:
+            start_date = today - timedelta(days=30)
         else:
-            start_date = dt.strptime(self.start_str, '%Y-%m-%d').date() \
-                         - timedelta(days=30)
+            start_date = dt.strptime(self.start_str, '%Y-%m-%d').date()
+        if self.end_str is None:
+            end_date = today
+        else:
+            end_date = dt.strptime(self.end_str, '%Y-%m-%d').date()
 
         logger.debug(
             'Pulling campaign data from - ' + start_date.strftime(
@@ -289,7 +290,7 @@ class KlaviyoData:
 
         for row in camp_list:
             if row.sent_at is None or row.sent_at.date() < start_date or \
-                    abs((row.sent_at.date() - start_date).days) > 30:
+                    (row.sent_at.date() - end_date).days > 7:
                 continue
             data = self.metric_data(row.id, row.sent_at, metric_where,
                                     '$message')
@@ -307,12 +308,12 @@ class KlaviyoData:
         current_date = dt.today()
         thirty_days = timedelta(days=30)
         current_date -= thirty_days
-        end_dt = self.end_date.date()
+        end_dt = self.end_date
         date_list = []
         days = (self.end_date - self.start_date).days
         if days > 30:
-            start = self.start_date.date()
-            end = self.start_date.date() + timedelta(days=30)
+            start = self.start_date
+            end = self.start_date + timedelta(days=30)
             while end <= end_dt:
                 date_list.append({'start': start, 'end': end})
                 if end == end_dt:
