@@ -148,8 +148,8 @@ builder.build_database('klaviyo')
 # Optionally but recommended, a separate user can be created with only access to the database
 builder.create_user('klaviyo_user', 'StrongPassword1!')
 
-# Create the table structure
-builder.build_tables('klaviyo')
+# Create the table structure, optionally include a start date in 'yyyy-mm-dd' formart to build a date dimension table
+builder.build_tables('klaviyo', date_start='2021-01-01')
 ```
 
 #### Create Database via Command Line
@@ -160,7 +160,17 @@ builder.build_tables('klaviyo')
 $ build_klaviyo --help
 Usage: build_klaviyo [OPTIONS]
 
-  Build Klaviyo Database.
+   Builds database, tables and user for Klaviyo Data App.
+
+    Add --tables-only to only build tables with existing --db.
+
+    Include --db_user and --db_pass to create a user for the database.
+
+    Include --date-dimension-start date to build a date dimension table.
+    Date format is yyyy-MM-dd.
+
+    Without --db_user and --db_pass, the admin user or existsing --db 
+    user needs to be used to run the app
 
 Options:
   --server TEXT                   Server to connect to
@@ -171,6 +181,7 @@ Options:
   --db TEXT                       SQL Server database
   --tables-only / --db-and-tables
                                   Only build tables
+  --date-dimension-start          Start date for date dimension table
   --help                          Show this message and exit.
 
 # Build klaviyo database and tables

@@ -289,10 +289,13 @@ class KlaviyoData:
         camp_list = id_gen(self.engine, 'CampaignList')
 
         for row in camp_list:
-            if row.sent_at is None or row.sent_at.date() < start_date or \
+            if row.sent_at is None or \
+                    row.sent_at.date() < (start_date - timedelta(days=2)) or \
                     (row.sent_at.date() - end_date).days > 7:
                 continue
-            data = self.metric_data(row.id, row.sent_at, metric_where,
+            data = self.metric_data(row.id,
+                                    (row.sent_at - timedelta(days=2)),
+                                    metric_where,
                                     '$message')
             if len(data.index) == 0:
                 continue
