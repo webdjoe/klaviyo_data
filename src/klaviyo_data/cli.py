@@ -62,14 +62,20 @@ def cli_runner(days, between, config):
               default='klaviyo', help='SQL Server database')
 @click.option('--tables-only/--db-and-tables', default=False,
               help='Only build tables')
+@click.option('--date-dimension-start', type='str',
+              help='Build date table from start date 2022-01-01')
 def klaviyo_db_builder(server, port, sa_user, sa_pass, db_user, db_pass,
                        driver, db, tables_only):
     """\b
     Builds database, tables and user for Klaviyo Data App.
     \b
     Add --tables-only to only build tables with existing --db.
-
+    \b
     Include --db_user and --db_pass to create a user for the database.
+    
+    \b
+    Include --date-dimension-start date to build a date dimension table.
+    Date format is yyyy-MM-dd.
 
     \b
     Without --db_user and --db_pass, the admin user or existsing --db 
