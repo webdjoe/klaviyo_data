@@ -30,9 +30,9 @@ class DBBuilder:
         Args:
             server (_type_): _description_
             port (_type_): _description_
-            sa_user (Optional[str], optional): _description_. Defaults to None.
-            sa_password (Optional[str], optional): _description_. Defaults to None.
-            windows_auth (bool, optional): _description_. Defaults to False.
+            sa_user (Optional[str], optional): db admin user. Defaults to None.
+            sa_password (Optional[str], optional): db admin pw. Defaults None.
+            windows_auth (bool, optional): use windows auth. Defaults to False.
             driver (str, optional): _description_. Defaults to DEFAULT_DRIVER.
         """
         self.port = port
