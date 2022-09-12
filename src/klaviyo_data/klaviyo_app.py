@@ -15,6 +15,7 @@ from klaviyo_data.sql_app import get_engine, id_gen, data_qry
 from klaviyo_data.vars import MetricConfig, CampaignConfig
 from klaviyo_data.data_work import campaign_lists, flow_lists, metric_parse
 from klaviyo_data.configure import Config
+from klaviyo_data.templates import TemplateFactory
 
 
 logger = logging.getLogger()
@@ -58,9 +59,14 @@ class KlaviyoData:
         self.db: Optional[str] = self.klaviyo_conf['database']
         self.start_date: Optional[dt] = None
         self.end_date: Optional[dt] = None
+        self.pspdfkit_api: Optional[str] = self.klaviyo_conf.get(
+            'pspdfkit_api')
         self.start_str, self.end_str = self.date_config()
         if not self.start_date or not self.end_date:
             raise ValueError
+
+    def templates_factory(self) -> TemplateFactory:
+        return TemplateFactory(self.klaviyo_conf, self.engine)
 
     def date_config(self) -> Tuple[str, str]:
         """Get dates from configuration."""

@@ -158,6 +158,7 @@ class DBBuilder:
                 isolation_level='AUTOCOMMIT') as conn:
             tbl_class = TableBuilder()
             tbl_class.meta.create_all(bind=conn)
+            conn.execute(tbl_class.Templates())
         if date_start is not None:
             build_date_dimension(kv_engine, date_start)
         tester = inspect(kv_engine)

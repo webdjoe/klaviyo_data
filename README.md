@@ -22,6 +22,7 @@ The application is based on a specific SQL Server table structure that is outlin
       - [Create Database via Command Line](#create-database-via-command-line)
     - [Running via Python Module](#running-via-python-module)
     - [Running via Command Line](#running-via-command-line)
+  - [Campaign Creative](#campaign-creative)
   - [Database Structure](#database-structure)
 
 ## Metrics Tracked
@@ -282,11 +283,90 @@ $ klaviyo_cli -d 30 --config config.ini
 
 ```
 
+## Campaign Creative
+
+Klaviyo also provides an endpoint to get the HTML for templates. I have a class with methods that can pull the HTML and use an online API "htmlcsstoimage.com" to convert the HTML to an image. I tried to use a pure python solution but the options were too complex or heavy to use on a headless system such as docker. This API allows 50 free requests per month, which should be more than enough for most users.
+
+The methods can be access programmatically with the `klaviyo_data.templates.TemplateFactory` class or via the command line application `klaviyo_templates`.
+
+Add the API user and password to the config file and `template_factory` will automatically use the API to convert the HTML to an image.
+
+The default database structure includes a table called `Templates` with columns for the template id, name, html, image and image_path. The image_path column is used to store the local path to the image file. The image_path column is not used by the application and is only there for convenience. 
+
+The html column stores the template html and is `varchar(max)` type. The image column is `varbinary(max)` type. Storing the image in the table is optional and can be disabled. If planning to do so, I would recommend using a `FILESTREAM` for this column. It requires too much manual configuration to automate and is not available on Azure SQL Server or SQL Managed Instance, so this must be done manually. A great tutorial can be found [here](https://www.sqlshack.com/working-with-sql-server-filestream-adding-columns-and-moving-databases/).
+
+
+The details of the htmlcsstoimage.com API can be found [here](https://docs.htmlcsstoimage.com/getting-started/using-the-api/#parameters).
+
+```python
+from klaviyo_data.klaviyo_app import KlaviyoData
+
+# Instantiate the class
+app = KlaviyoData('config.ini')
+template_factory = app.template_factory
+
+# Pull all templates and html to SQL Database
+template_factory.pull_all_templates()
+
+# Get templates and store images in folder with paths in SQL Table
+# Set the folder path either relative to CWD or use absolute path
+# Specify API options as a dictionary
+template_factory.get_template_images(template_id=TEMP_ID,
+                                     to_file=True,
+                                     file_path='templates',
+                                     api_options={
+                                          'selector': "#css-id",
+                                          "width": 600,
+                                          "height": 1200
+                                     })
+
+# Get templates and store image in sql table
+template_factory.get_template_images(template_id=TEMP_ID,
+                                     to_sql=True,
+                                     api_options={
+                                          'selector': "#css-id",
+                                     })
+
+# Image can also be returned as bytes and stored in a variable
+image_bytes = template_factory.get_template_images(template_id=TEMP_ID,
+                                                   to_return=True,
+                                                   api_options={
+                                                        'selector': "#css-id",
+                                                   })
+```
+
+The `TemplateFactory` class can also be accessed via command line with `klaviyo_templates`.
+
+```shell
+$ klaviyo_templates --help
+  Usage: klaviyo_templates [OPTIONS]
+
+  Get Klaviyo Templates and use htmlcsstoimmage API to render images.
+
+  Specify multiple template ID's with a comma separated list, no spaces.
+
+  Specify a css selector to get an image of a specific element.
+
+Options:
+  --template_ids TEXT  comma separted list of template ids to process.
+  --to_sql             Upload template images to sql server
+  --to_file            Write images to files
+  --file_path TEXT     Path to write images. Defaults to CWD/templates
+  --selector TEXT      CSS Selector for template
+  --config TEXT        Location of config.ini
+  --help               Show this message and exit.
+
+$ klaviyo_templates --template_ids temp_id_1,temp_id_2 \
+    --to_sql --to_file --file_path templates \
+    --selector "#ccs-id" --config config.ini
+
+```
+
 ## Database Structure
 
 The database is structured with the following tables:
 
-[](Tables) **Tables** _`7`_
+[](Tables) **Tables** _`8`_
 
 |Name|Description|
 |---|---|
@@ -297,3 +377,4 @@ The database is structured with the following tables:
 |[dbo.CampaignMetrics](docs/Tables/dbo.CampaignMetrics.md)|Campaign Metrics by Date, Metric ID & Measure|
 |[dbo.CampaignExcludes](docs/Tables/dbo.CampaignExcludes.md)|Segments and Lists Excluded on Campaigns|
 |[dbo.CampaignIncludes](docs/Tables/dbo.CampaignIncludes.md)|Segments and Lists Included on Campaigns|
+|[dbo.Templates](docs/Tables/dbo.Templates.md)|Stores template html and images|
