@@ -18,9 +18,11 @@ from klaviyo_data.configure import Config
 from klaviyo_data.templates import TemplateFactory
 
 
-logger = logging.getLogger()
+logger = logging.getLogger('klaviyo_data')
 output_file = logging.FileHandler('klaviyo.log')
+output_file.setLevel(logging.DEBUG)
 output_stdout = logging.StreamHandler(sys.stdout)
+output_stdout.setLevel(logging.DEBUG)
 
 logger.addHandler(output_file)
 logger.addHandler(output_stdout)
@@ -128,15 +130,19 @@ class KlaviyoData:
             if isinstance(excludes_list, DataFrame) and len(excludes_list) > 0:
                 excludes_df = pd.concat([excludes_df, excludes_list],
                                         ignore_index=True)
-            total_df = pd.concat([total_df, data_df], ignore_index=True)
+            if len(data_df.index) > 0:
+                total_df = pd.concat([total_df, data_df], ignore_index=True)
 
-        data_qry(self.engine, self.klaviyo_conf, tbl, total_df)
+        if len(total_df.index) > 0:
+            total_df.num_recipients = total_df.num_recipients.fillna(0)
+            data_qry(self.engine, self.klaviyo_conf, tbl, total_df)
         if isinstance(includes_df, pd.DataFrame) and len(includes_df) > 0:
             data_qry(self.engine, self.klaviyo_conf, "CampaignIncludes",
                      includes_df)
         if isinstance(excludes_df, pd.DataFrame) and len(excludes_df) > 0:
             data_qry(self.engine, self.klaviyo_conf, "CampaignExcludes",
                      excludes_df)
+        logger.debug('All campaigns pulled to date')
         return
 
     def sql_replace(self, tbl: str, data: List[dict]) -> None:
@@ -310,6 +316,7 @@ class KlaviyoData:
                         inplace=True)
             data_qry(self.engine, self.klaviyo_conf, "CampaignMetrics",
                      data)
+        logger.debug("Campaign Metrics Complete")
 
     def flow_metrics(self):
         flow_where = self.metric_config.flow_where
@@ -351,3 +358,4 @@ class KlaviyoData:
                     continue
                 data = data.rename(columns={'id': 'flow_id'})
                 data_qry(self.engine, self.klaviyo_conf, "FlowMetrics", data)
+        logger.debug("Flow Metrics Complete")
