@@ -15,7 +15,7 @@ from klaviyo_data.vars import (merge_str, MergeDict, SQLBuilder,
 
 DEFAULT_DRIVER = 'ODBC Driver 17 for SQL Server'
 
-logger = logging.getLogger()
+logger = logging.getLogger('klaviyo_data.sql_app')
 logger.level = logging.DEBUG
 
 
@@ -30,11 +30,12 @@ class DBBuilder:
         Args:
             server (_type_): _description_
             port (_type_): _description_
-            sa_user (Optional[str], optional): _description_. Defaults to None.
-            sa_password (Optional[str], optional): _description_. Defaults to None.
-            windows_auth (bool, optional): _description_. Defaults to False.
+            sa_user (Optional[str], optional): db admin user. Defaults to None.
+            sa_password (Optional[str], optional): db admin pw. Defaults None.
+            windows_auth (bool, optional): use windows auth. Defaults to False.
             driver (str, optional): _description_. Defaults to DEFAULT_DRIVER.
         """
+        self.logger = logging.getLogger('klaviyo_data.sql_app.DBBuilder')
         self.port = port
         self.server = server
         self.sa_user = sa_user
@@ -60,23 +61,24 @@ class DBBuilder:
             if self.engine is not None:
                 conn = self.engine.connect()
         except SQLAlchemyError as e:
-            logger.error(f"Cannot connect to db - {e}")
+            self.logger.error(f"Cannot connect to db - {e}")
             return False
         else:
             conn.close()
+        self.logger.debug('Connected to db')
         return True
 
     def create_user(self, kv_user: str, kv_password: str,
                     db_name: Optional[str] = None) -> bool:
         if db_name is None and self.db_name is None:
-            logger.debug("Klaviyo db_name needed to add user")
+            self.logger.error("Klaviyo db_name needed to add user")
             return False
         if db_name is not None:
             self.db_name = db_name
         if self.engine is None:
             self.get_engine()
         if self.engine is None:
-            logger.debug("Unable to connect to db")
+            self.logger.error("Unable to connect to db")
             return False
         with self.engine.connect().execution_options(
                 isolation_level='AUTOCOMMIT') as conn:
@@ -85,7 +87,7 @@ class DBBuilder:
                     f"SELECT * FROM [master].[sys].[server_principals]\
                         WHERE name = N'{kv_user}'")
                 if stmt.scalar() is not None:
-                    logger.debug(f"{kv_user} already exists")
+                    self.logger.debug(f"{kv_user} already exists")
                     return False
                 conn.execute(f"CREATE LOGIN {kv_user} \
                     WITH PASSWORD = '{kv_password}'")
@@ -100,7 +102,7 @@ class DBBuilder:
         }
         kv_engine = get_engine(kv_conf)
         if kv_engine is None:
-            logger.debug("Unable to connect to Klaviyo db")
+            self.logger.error("Unable to connect to Klaviyo db")
             return False
         with self.engine.connect().execution_options(
                 isolation_level='AUTOCOMMIT') as conn:
@@ -117,7 +119,7 @@ class DBBuilder:
                     conn.execute(f"EXEC sp_addrolemember N'db_owner',\
                         N'{kv_user}'")
             except SQLAlchemyError as e:
-                logger.error(f"Cannot create user - {e}")
+                self.logger.error(f"Cannot create user - {e}")
                 return False
             else:
                 return True
@@ -126,7 +128,7 @@ class DBBuilder:
                        schema: str = 'dbo') -> bool:
         self.db_name = db_name
         if not isinstance(self.engine, EngType):
-            logger.debug("Error: engine not set")
+            self.logger.error("Error: engine not set")
             return False
         sql_obj = SQLBuilder(db_name)
         with self.engine.connect().execution_options(
@@ -134,12 +136,13 @@ class DBBuilder:
             with conn.begin():
                 conn.execute(sql_obj.make_db())
                 conn.execute(sql_obj.alter_db())
+        self.logger.debug(f"Created {db_name}")
         return True
 
     def build_tables(self, db_name: Optional[str] = None,
                      date_start: Optional[str] = None) -> bool:
         if self.db_name and db_name is None:
-            logger.debug("Please specify db_name")
+            self.logger.debug("Please specify db_name")
             return False
         if db_name is not None:
             self.db_name = db_name
@@ -158,6 +161,7 @@ class DBBuilder:
                 isolation_level='AUTOCOMMIT') as conn:
             tbl_class = TableBuilder()
             tbl_class.meta.create_all(bind=conn)
+            conn.execute(tbl_class.Templates())
         if date_start is not None:
             build_date_dimension(kv_engine, date_start)
         tester = inspect(kv_engine)
@@ -177,6 +181,7 @@ def build_date_dimension(engine: EngType, date_str: str) -> bool:
     with engine.connect().execution_options(
             isolation_level='AUTOCOMMIT') as conn:
         conn.execute(tbl_meta.insert(), date_rows)
+    logger.debug("DateDimension built")
     return True
 
 
@@ -218,6 +223,7 @@ def get_engine(sql_conf):
         raise Exception('Error connecting to database,'
                         'check user password and authentication method')
     engine = create_engine(con_url)
+    logger.debug("Engine created")
     return engine
 
 

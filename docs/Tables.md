@@ -1,6 +1,6 @@
 # ![logo](Images/folder64.svg) Tables
 
-## [](Tables) Objects _`7`_
+## [](Tables) Objects _`8`_
 
 |Name|Description|
 |---|---|
@@ -11,3 +11,4 @@
 |[dbo.CampaignMetrics](Tables/dbo.CampaignMetrics.md)|Campaign Metrics by Date, Metric ID & Measure|
 |[dbo.CampaignExcludes](Tables/dbo.CampaignExcludes.md)|Segments and Lists Excluded on Campaigns|
 |[dbo.CampaignIncludes](Tables/dbo.CampaignIncludes.md)|Segments and Lists Included on Campaigns|
+|[dbo.Templates](Tables/dbo.Templates.md)|Template HTML and image binary storage|

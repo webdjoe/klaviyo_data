@@ -40,7 +40,8 @@ setuptools.setup(
     entry_points={
         'console_scripts': [
             'klaviyo_cli = klaviyo_data.cli:cli_runner',
-            'build_klaviyo = klaviyo_data.cli:klaviyo_db_builder'
+            'build_klaviyo = klaviyo_data.cli:klaviyo_db_builder',
+            'klaviyo_templates = klaviyo_data.cli:klaviyo_template_factory'
         ],
     }
 )

@@ -156,6 +156,7 @@ CREATE TABLE $(Schema).CampaignExcludes (
 )
 ON [PRIMARY]
 GO
+
 DECLARE @StartDate  date = '$(StartDate)';
 
 DECLARE @CutoffDate date = DATEADD(DAY, -1, DATEADD(YEAR, 30, @StartDate));
@@ -243,4 +244,19 @@ GO
 CREATE UNIQUE CLUSTERED INDEX PK_DateDimension ON $(SchemaName).DateDimension(TheDate);
 GO
 SET NOEXEC OFF
+GO
+
+CREATE TABLE $(Schema).Templates (
+	[file_id] [uniqueidentifier] ROWGUIDCOL DEFAULT (newid()) NOT NULL,
+	[id] [nvarchar](20) PRIMARY KEY NOT NULL,
+	[updated] [datetime] NOT NULL,
+	[created] [datetime] NOT NULL,
+	[name] [nvarchar](255) NOT NULL,
+	[image_path] [nvarchar](255) NULL,
+	[html] [nvarchar](max) NOT NULL,
+	[image_blob] [varbinary](max) NULL
+)
+GO
+)
+ON [PRIMARY]
 GO

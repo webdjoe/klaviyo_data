@@ -403,6 +403,21 @@ class TableBuilder:
                             primary_key=True, nullable=False),
                      Column('name', NVARCHAR(length=255)))
 
+    def Templates(self) -> str:
+        return f"""
+        CREATE TABLE [{self.schema}].[Templates](
+            [file_id] [uniqueidentifier] ROWGUIDCOL DEFAULT (newid()) NOT NULL,
+            [id] [nvarchar](20) PRIMARY KEY NOT NULL,
+            [updated] [datetime] NOT NULL,
+            [created] [datetime] NOT NULL,
+            [name] [nvarchar](255) NOT NULL,
+            [image_path] [nvarchar](255) NULL,
+            [html] [nvarchar](max) NOT NULL,
+            [image_blob] [varbinary](max) NULL
+        )
+        GO
+    """
+
 
 class DateDimension:
     create_table = """

@@ -62,7 +62,7 @@ def cli_runner(days, between, config):
               default='klaviyo', help='SQL Server database')
 @click.option('--tables-only/--db-and-tables', default=False,
               help='Only build tables')
-@click.option('--date-dimension-start', type='str',
+@click.option('--date-dimension-start', type=str,
               help='Build date table from start date 2022-01-01')
 def klaviyo_db_builder(server, port, sa_user, sa_pass, db_user, db_pass,
                        driver, db, tables_only):
@@ -72,13 +72,13 @@ def klaviyo_db_builder(server, port, sa_user, sa_pass, db_user, db_pass,
     Add --tables-only to only build tables with existing --db.
     \b
     Include --db_user and --db_pass to create a user for the database.
-    
+
     \b
     Include --date-dimension-start date to build a date dimension table.
     Date format is yyyy-MM-dd.
 
     \b
-    Without --db_user and --db_pass, the admin user or existsing --db 
+    Without --db_user and --db_pass, the admin user or existsing --db
     user needs to be used to run the app
     """
     click.echo(f"tables_only: {tables_only}")
@@ -119,3 +119,43 @@ def klaviyo_db_builder(server, port, sa_user, sa_pass, db_user, db_pass,
                 click.echo(f"Successfully created {db_user} user in {db}")
     click.echo("Error building tables")
     return
+
+
+@click.command()
+@click.option('--template_ids', type=str,
+              help="comma separted list of template ids to process.")
+@click.option('--to_sql', is_flag=True, default=False,
+              help="Upload template images to sql server")
+@click.option('--to_file', is_flag=True, default=False,
+              help="Write images to files")
+@click.option('--file_path', type=str,
+              help="Path to write images. Defaults to CWD/templates")
+@click.option('--selector', type=str,
+              help="CSS Selector for template")
+@click.option('--config', type=str, default='config.ini',
+              help="Location of config.ini")
+def klaviyo_template_factory(template_ids, to_sql, to_file,
+                             file_path, selector, config):
+    """Get Klaviyo Templates and use htmlcsstoimmage API to render images.
+
+        \b
+        Specify multiple template ID's with a comma separated list, no spaces.
+
+        \b
+        Specify a css selector to get an image of a specific element.
+    """
+    if template_ids is None:
+        click.echo("No template ids provided")
+        return
+    template_ids = template_ids.split(',')
+    kv_app = KlaviyoData(config)
+    tf = kv_app.templates_factory()
+    click.echo("Getting templates")
+    tf.pull_all_templates()
+    options = {
+        'selector': selector
+    }
+    for id in template_ids:
+        click.echo(f"Getting template {id}")
+        tf.get_template_image(id, to_sql=to_sql, to_file=to_file,
+                              file_path=file_path, api_options=options)
